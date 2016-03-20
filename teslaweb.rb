@@ -10,6 +10,7 @@ configure do
 end
 
 $config = YAML::load_file('./config.yaml')
+$user = nil
 
 helpers do
   def protected!
@@ -23,7 +24,8 @@ helpers do
     if(@auth.provided? and @auth.basic? and @auth.credentials)
     	c = @auth.credentials
     	pp c
-    	$config[:users][c[0]] == c[1]
+    	$user = $config[:users][c[0]]
+    	$user[:password] == c[1]
     end
   end
 end
@@ -77,14 +79,14 @@ post '/api/v1/cmd' do
 			result = @model_s.charge_port_door_open
 			if(result['reason'] == 'charging')
 				out << "Aborting charging to release charge cable. "
-				@model_s.charge_stop
-				@model_s.charge_port_door_open
+				@model_s.charge_stop if $user[:allowed_commands].include? 'charge_start'
+				@model_s.charge_port_door_open if $user[:allowed_commands].include? 'charge_port_door_open'
 			end
 			out << "Port opened. "
 		end
 		if params[:charge_max]
-			@model_s.charge_port_door_open
-			@model_s.set_charge_limit(100)
+			@model_s.charge_port_door_open if $user[:allowed_commands].include? 'charge_port_door_open'
+			@model_s.set_charge_limit(100) if $user[:allowed_commands].include? 'set_charge_limit'
 		end
 		out << "Done. <a href=\"/\" style=\"font-size:70px\">Back.</a>"
 	end

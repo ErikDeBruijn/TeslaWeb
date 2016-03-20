@@ -9,6 +9,7 @@ If you access the panel with your webbrowser you can push an "Open port" button 
 
 How to get in running:
  - Use a Linux or other system that runs ruby, with a public ip or port forward
+ - For debian or ubuntu, install ruby. E.g. `apt-get install ruby ruby-dev`
  - `gem install bundler`
  - `bundle`
  - `gem install rerun`

@@ -74,7 +74,12 @@ post '/api/v1/cmd' do
 		tesla_signin()
 		out << "Signed in. "
 		if params[:open_port]
-			pp @model_s.charge_port_door_open
+			result = @model_s.charge_port_door_open
+			if(result['reason'] == 'charging')
+				out << "Aborting charging to release charge cable. "
+				@model_s.charge_stop
+				@model_s.charge_port_door_open
+			end
 			out << "Port opened. "
 		end
 		if params[:charge_max]

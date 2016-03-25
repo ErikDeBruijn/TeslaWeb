@@ -59,6 +59,7 @@ get '/' do
 	'Hi. '+ message +' Push a button:
 	<form method="post" action="/api/v1/cmd">
 	  <input value="Open port" name="open_port" type="submit" style="width:100%;height: 400px;font-size:70px"/><br>
+	  <input value="Charge status" name="check_soc" type="submit" style="width:100%;height: 400px;font-size:70px"/><br>
 	</form>'
 end
 
@@ -88,7 +89,23 @@ post '/api/v1/cmd' do
 			@model_s.charge_port_door_open if $user[:allowed_commands].include? 'charge_port_door_open'
 			@model_s.set_charge_limit(100) if $user[:allowed_commands].include? 'set_charge_limit'
 		end
-		out << "Done. <a href=\"/\" style=\"font-size:70px\">Back.</a>"
+		if params[:check_soc]
+			charge_state = @model_s.charge_state
+			if charge_state
+				pp charge_state
+				range = charge_state["est_battery_range"] * 0.621371
+				out << "Status: #{charge_state["charging_state"]}. " +
+			    	"Charge at #{charge_state["battery_level"]}% " +
+			    	"and an estimate range of #{range.round} km."
+	    	else
+	    		out << "Didn't get any data. Please retry."
+	    	end
+		end
+	    puts out
+		out << '<br><br>Done.' +
+		  '	  <form action="/">' +
+		  '	  <input value="Back" name="return" type="submit" style="width:100%;height: 400px;font-size:70px"/>' +
+		  '</form><br>'
 	end
 end
 
